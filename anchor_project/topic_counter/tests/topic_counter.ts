@@ -2,6 +2,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { TopicCounter } from "../target/types/topic_counter";
 import { PublicKey } from '@solana/web3.js';
+import { assert, expect } from "chai";
 
 describe("topic_counter", () => {
   // Configure the client to use the local cluster.
@@ -13,6 +14,8 @@ describe("topic_counter", () => {
   it("Is initialized!", async () => {
     const user = anchor.web3.Keypair.generate()
     const topicAccount = anchor.web3.Keypair.generate()
+    const topicTitle = "This is a topic title"
+    const topicContent = "This is a topic content"
 
     // const topicTitle = Buffer.from("My Topic", "utf-8")
     // const contentTitle = Buffer.from("My Content", "utf-8")
@@ -25,7 +28,7 @@ describe("topic_counter", () => {
     await airdrop(provider.connection, user.publicKey)
 
     const tx = await program.methods
-    .initialize()
+    .initialize(topicTitle, topicContent)
     .accounts({
       topicOwner: user.publicKey,
       topicAccount: topicAccount.publicKey,
@@ -35,6 +38,36 @@ describe("topic_counter", () => {
     .rpc({skipPreflight: true})
    
     console.log("Your transaction signature", tx);
+
+    const fetchedTopicAccount = await program.account.topic.fetch(topicAccount.publicKey);
+
+    expect(fetchedTopicAccount.title, topicTitle)
+    expect(fetchedTopicAccount.content, topicContent)
+  });
+
+  it("Is not initialized!", async () => {
+    const user = anchor.web3.Keypair.generate()
+    const topicAccount = anchor.web3.Keypair.generate()
+    const topicTitle = "This is a topic title dklfaskdlfjdsakjfasjkfklsajdfkjldsafkljdsafkl"
+    const topicContent = "This is a topic content"
+
+    await airdrop(provider.connection, user.publicKey)
+
+    try {
+      const tx = await program.methods
+    .initialize(topicTitle, topicContent)
+    .accounts({
+      topicOwner: user.publicKey,
+      topicAccount: topicAccount.publicKey,
+      systemProgram: anchor.web3.SystemProgram.programId,
+    })
+    .signers([user, topicAccount])
+    .rpc({skipPreflight: true})
+
+    assert.fail("The instruction operation must be failed")
+    } catch(_error) {
+      assert.isNotNull(_error)
+    }
   });
 });
 
