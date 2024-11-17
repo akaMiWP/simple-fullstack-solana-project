@@ -11,7 +11,7 @@ describe("topic_counter", () => {
 
   const program = anchor.workspace.TopicCounter as Program<TopicCounter>;
 
-  it("Is initialized!", async () => {
+  it("when create_topic returns successfully!", async () => {
     const user = anchor.web3.Keypair.generate()
     const topicAccount = anchor.web3.Keypair.generate()
     const topicTitle = "This is a topic title"
@@ -45,11 +45,36 @@ describe("topic_counter", () => {
     expect(fetchedTopicAccount.content, topicContent)
   });
 
-  it("Is not initialized!", async () => {
+  it("when create_topic returns failed because of topic title too long!", async () => {
     const user = anchor.web3.Keypair.generate()
     const topicAccount = anchor.web3.Keypair.generate()
-    const topicTitle = "This is a topic title dklfaskdlfjdsakjfasjkfklsajdfkjldsafkljdsafkl"
+    const topicTitle = "Lorem ipsum dolor sit amet, conse"
     const topicContent = "This is a topic content"
+
+    await airdrop(provider.connection, user.publicKey)
+
+    try {
+      const tx = await program.methods
+      .createTopic(topicTitle, topicContent)
+      .accounts({
+        topicOwner: user.publicKey,
+        topicAccount: topicAccount.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .signers([user, topicAccount])
+      .rpc({skipPreflight: true})
+
+      assert.fail("The instruction operation must be failed")
+    } catch(_error) {
+      assert.isNotNull(_error)
+    }
+  });
+
+  it("when create_topic returns failed because of topic content too long!", async () => {
+    const user = anchor.web3.Keypair.generate()
+    const topicAccount = anchor.web3.Keypair.generate()
+    const topicTitle = "This is a topic title"
+    const topicContent = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec qua"
 
     await airdrop(provider.connection, user.publicKey)
 
