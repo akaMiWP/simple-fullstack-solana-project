@@ -171,6 +171,108 @@ describe("topic_counter", () => {
         assert.equal(anchorError.error.errorCode.code, "ContentTooLong")
       }
     });
+
+    it("prevent the program to create the duplicate topics from one single user", async () => {
+      const topicOwner = anchor.web3.Keypair.generate()
+      const topicTitle = "This is a topic title"
+      const topicContent = "This is a topic content"
+  
+      const [topicStoragePda, bump] = PublicKey.findProgramAddressSync([Buffer.from("topic_storage")], program.programId)
+      const [topicPda] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("topic"),
+          Buffer.from(topicTitle),
+          topicOwner.publicKey.toBuffer()
+        ],
+        program.programId
+      )
+  
+      await airdrop(provider.connection, topicOwner.publicKey)
+  
+      const tx = await program.methods
+      .createTopic(topicTitle, topicContent)
+      .accounts({
+        topicOwner: topicOwner.publicKey,
+        topicAccount: topicPda,
+        topicStorage: topicStoragePda,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .signers([topicOwner])
+      .rpc({"commitment": "confirmed"})
+
+      try {
+        const tx2 = await program.methods
+      .createTopic(topicTitle, topicContent)
+      .accounts({
+        topicOwner: topicOwner.publicKey,
+        topicAccount: topicPda,
+        topicStorage: topicStoragePda,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .signers([topicOwner])
+      .rpc({"commitment": "confirmed"})
+
+      assert.fail("This should fail")
+      } catch(_error) {
+        assert.isNotEmpty(_error)
+      }
+    });
+
+    it("allow the program to create the duplicate topics from different users", async () => {
+      const topicOwner1 = anchor.web3.Keypair.generate()
+      const topicOwner2 = anchor.web3.Keypair.generate()
+      const topicTitle = "This is a topic title"
+      const topicContent = "This is a topic content"
+  
+      const [topicStoragePda, bump] = PublicKey.findProgramAddressSync([Buffer.from("topic_storage")], program.programId)
+      const [topicPda1] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("topic"),
+          Buffer.from(topicTitle),
+          topicOwner1.publicKey.toBuffer()
+        ],
+        program.programId
+      )
+      const [topicPda2] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("topic"),
+          Buffer.from(topicTitle),
+          topicOwner2.publicKey.toBuffer()
+        ],
+        program.programId
+      )
+  
+      await airdrop(provider.connection, topicOwner1.publicKey)
+      await airdrop(provider.connection, topicOwner2.publicKey)
+  
+      try {
+        const tx1 = await program.methods
+      .createTopic(topicTitle, topicContent)
+      .accounts({
+        topicOwner: topicOwner1.publicKey,
+        topicAccount: topicPda1,
+        topicStorage: topicStoragePda,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .signers([topicOwner1])
+      .rpc({"commitment": "confirmed"})
+
+      const tx2 = await program.methods
+      .createTopic(topicTitle, topicContent)
+      .accounts({
+        topicOwner: topicOwner2.publicKey,
+        topicAccount: topicPda2,
+        topicStorage: topicStoragePda,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .signers([topicOwner2])
+      .rpc({"commitment": "confirmed"})
+      } catch(_error) {
+        console.log(_error);
+        
+        assert.fail("This shouldn't have failed")
+      }
+    });
   })
 });
 
