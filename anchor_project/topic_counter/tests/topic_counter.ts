@@ -28,7 +28,7 @@ describe("topic_counter", () => {
     await airdrop(provider.connection, user.publicKey)
 
     const tx = await program.methods
-    .initialize(topicTitle, topicContent)
+    .createTopic(topicTitle, topicContent)
     .accounts({
       topicOwner: user.publicKey,
       topicAccount: topicAccount.publicKey,
@@ -55,16 +55,16 @@ describe("topic_counter", () => {
 
     try {
       const tx = await program.methods
-    .initialize(topicTitle, topicContent)
-    .accounts({
-      topicOwner: user.publicKey,
-      topicAccount: topicAccount.publicKey,
-      systemProgram: anchor.web3.SystemProgram.programId,
-    })
-    .signers([user, topicAccount])
-    .rpc({skipPreflight: true})
+      .createTopic(topicTitle, topicContent)
+      .accounts({
+        topicOwner: user.publicKey,
+        topicAccount: topicAccount.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .signers([user, topicAccount])
+      .rpc({skipPreflight: true})
 
-    assert.fail("The instruction operation must be failed")
+      assert.fail("The instruction operation must be failed")
     } catch(_error) {
       assert.isNotNull(_error)
     }
