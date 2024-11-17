@@ -11,149 +11,167 @@ describe("topic_counter", () => {
 
   const program = anchor.workspace.TopicCounter as Program<TopicCounter>;
 
-  it("when topic_storage is intiailized!", async () => {
-    const admin = anchor.web3.Keypair.generate()
-    const [topicStoragePda, bump] = PublicKey.findProgramAddressSync([
-      Buffer.from("topic_storage")
-    ], program.programId)
-
-    await airdrop(provider.connection, admin.publicKey)
-
-    const tx = await program.methods
-    .deployProgram()
-    .accounts({
-      admin: admin.publicKey,
-      topicStorage: topicStoragePda,
-      systemProgram: anchor.web3.SystemProgram.programId
-    })
-    .signers([admin])
-    .rpc({skipPreflight: true})
-
-    console.log("Your transaction signature", tx);
-    
-    const topicStorageAccount = await program.account.topicStorage.fetch(topicStoragePda)
-    assert.equal(topicStorageAccount.totalTopics.toNumber(), 0)
-  })
-
-  it("when topic_storage is intiailized twice!", async () => {
-    const admin = anchor.web3.Keypair.generate()
-    const [topicStoragePda, bump] = PublicKey.findProgramAddressSync([
-      Buffer.from("topic_storage")
-    ], program.programId)
-
-    await airdrop(provider.connection, admin.publicKey)
-
-    try {
+  describe("deploy a program", () => {
+    it("when topic_storage is intiailized!", async () => {
+      const admin = anchor.web3.Keypair.generate()
+      const [topicStoragePda, bump] = PublicKey.findProgramAddressSync([
+        Buffer.from("topic_storage")
+      ], program.programId)
+  
+      await airdrop(provider.connection, admin.publicKey)
+  
       const tx = await program.methods
-    .deployProgram()
-    .accounts({
-      admin: admin.publicKey,
-      topicStorage: topicStoragePda,
-      systemProgram: anchor.web3.SystemProgram.programId
+      .deployProgram()
+      .accounts({
+        admin: admin.publicKey,
+        topicStorage: topicStoragePda,
+        systemProgram: anchor.web3.SystemProgram.programId
+      })
+      .signers([admin])
+      .rpc({"commitment": "confirmed"})
+  
+      console.log("Your transaction signature", tx);
+      
+      const topicStorageAccount = await program.account.topicStorage.fetch(topicStoragePda)
+      assert.equal(topicStorageAccount.totalTopics.toNumber(), 0)
     })
-    .signers([admin])
-    .rpc({skipPreflight: true})
-
-    const tx2 = await program.methods
-    .deployProgram()
-    .accounts({
-      admin: admin.publicKey,
-      topicStorage: topicStoragePda,
-      systemProgram: anchor.web3.SystemProgram.programId
+  
+    it("when topic_storage is intiailized twice!", async () => {
+      const admin = anchor.web3.Keypair.generate()
+      const [topicStoragePda, bump] = PublicKey.findProgramAddressSync([
+        Buffer.from("topic_storage")
+      ], program.programId)
+  
+      await airdrop(provider.connection, admin.publicKey)
+  
+      try {
+        const tx = await program.methods
+      .deployProgram()
+      .accounts({
+        admin: admin.publicKey,
+        topicStorage: topicStoragePda,
+        systemProgram: anchor.web3.SystemProgram.programId
+      })
+      .signers([admin])
+      .rpc({"commitment": "confirmed"})
+  
+      const tx2 = await program.methods
+      .deployProgram()
+      .accounts({
+        admin: admin.publicKey,
+        topicStorage: topicStoragePda,
+        systemProgram: anchor.web3.SystemProgram.programId
+      })
+      .signers([admin])
+      .rpc({"commitment": "confirmed"})
+      assert.fail("The instruction operation must be failed")
+      } catch(_error) {
+        assert.isNotNull(_error)
+      }
     })
-    .signers([admin])
-    .rpc({skipPreflight: true})
-    assert.fail("The instruction operation must be failed")
-    } catch(_error) {
-      assert.isNotNull(_error)
-    }
   })
 
-  it("when create_topic returns successfully!", async () => {
-    const topicOwner = anchor.web3.Keypair.generate()
-    const topicTitle = "This is a topic title"
-    const topicContent = "This is a topic content"
-
-    const [topicStoragePda, bump] = PublicKey.findProgramAddressSync([Buffer.from("topic_storage")], program.programId)
-    const [topicPda] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("topic"),
-        Buffer.from(topicTitle),
-        topicOwner.publicKey.toBuffer()
-      ],
-      program.programId
-    )
-
-    await airdrop(provider.connection, topicOwner.publicKey)
-
-    const tx = await program.methods
-    .createTopic(topicTitle, topicContent)
-    .accounts({
-      topicOwner: topicOwner.publicKey,
-      topicAccount: topicPda,
-      topicStorage: topicStoragePda,
-      systemProgram: anchor.web3.SystemProgram.programId,
-    })
-    .signers([topicOwner])
-    .rpc({skipPreflight: true})
-   
-    console.log("Your transaction signature", tx);
-
-    await checkTopicTitleAndContent(program, topicPda, topicTitle, topicContent)
-
-    let topicStorage = await program.account.topicStorage.fetch(topicStoragePda)
-    assert.equal(topicStorage.totalTopics.toNumber(), 1)
-  });
-
-  // it("when create_topic returns failed because of topic title too long!", async () => {
-  //   const user = anchor.web3.Keypair.generate()
-  //   const topicAccount = anchor.web3.Keypair.generate()
-  //   const topicTitle = "Lorem ipsum dolor sit amet, conse"
-  //   const topicContent = "This is a topic content"
-
-  //   await airdrop(provider.connection, user.publicKey)
-
-  //   try {
-  //     const tx = await program.methods
-  //     .createTopic(topicTitle, topicContent)
-  //     .accounts({
-  //       topicOwner: user.publicKey,
-  //       topicAccount: topicAccount.publicKey,
-  //       systemProgram: anchor.web3.SystemProgram.programId,
-  //     })
-  //     .signers([user, topicAccount])
-  //     .rpc({skipPreflight: true})
-
-  //     assert.fail("The instruction operation must be failed")
-  //   } catch(_error) {
-  //     assert.isNotNull(_error)
-  //   }
-  // });
-
-  // it("when create_topic returns failed because of topic content too long!", async () => {
-  //   const user = anchor.web3.Keypair.generate()
-  //   const topicAccount = anchor.web3.Keypair.generate()
-  //   const topicTitle = "This is a topic title"
-  //   const topicContent = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec qua"
-
-  //   await airdrop(provider.connection, user.publicKey)
-
-  //   try {
-  //     const tx = await program.methods
-  //     .createTopic(topicTitle, topicContent)
-  //     .accounts({
-  //       topicOwner: user.publicKey,
-  //       topicAccount: topicAccount.publicKey,
-  //       systemProgram: anchor.web3.SystemProgram.programId,
-  //     })
-  //     .signers([user, topicAccount])
-  //     .rpc({skipPreflight: true})
-
-  //     assert.fail("The instruction operation must be failed")
-  //   } catch(_error) {
-  //     assert.isNotNull(_error)
-  //   }
-  // });
+  describe("create a topic", () => {
+    it("when create_topic returns successfully!", async () => {
+      const topicOwner = anchor.web3.Keypair.generate()
+      const topicTitle = "This is a topic title"
+      const topicContent = "This is a topic content"
+  
+      const [topicStoragePda, bump] = PublicKey.findProgramAddressSync([Buffer.from("topic_storage")], program.programId)
+      const [topicPda] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("topic"),
+          Buffer.from(topicTitle),
+          topicOwner.publicKey.toBuffer()
+        ],
+        program.programId
+      )
+  
+      await airdrop(provider.connection, topicOwner.publicKey)
+  
+      const tx = await program.methods
+      .createTopic(topicTitle, topicContent)
+      .accounts({
+        topicOwner: topicOwner.publicKey,
+        topicAccount: topicPda,
+        topicStorage: topicStoragePda,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .signers([topicOwner])
+      .rpc({"commitment": "confirmed"})
+     
+      console.log("Your transaction signature", tx);
+  
+      await checkTopicTitleAndContent(program, topicPda, topicTitle, topicContent)
+  
+      let topicStorage = await program.account.topicStorage.fetch(topicStoragePda)
+      assert.equal(topicStorage.totalTopics.toNumber(), 1)
+    });
+  
+    it("when create_topic returns failed with TitleTooLong!", async () => {
+      const topicOwner = anchor.web3.Keypair.generate()
+      const topicTitle = "Lorem ipsum dolor sit amet, conse"
+      const topicContent = "This is a topic content"
+      const [topicStoragePda, bump] = PublicKey.findProgramAddressSync([Buffer.from("topic_storage")], program.programId)
+      try {
+        const [topicPda] = PublicKey.findProgramAddressSync(
+          [
+            Buffer.from("topic"),
+            Buffer.from(topicTitle),
+            topicOwner.publicKey.toBuffer()
+          ],
+          program.programId
+        )
+  
+        await airdrop(provider.connection, topicOwner.publicKey)
+  
+        const tx = await program.methods
+          .createTopic(topicTitle, topicContent)
+          .accounts({
+            topicOwner: topicOwner.publicKey,
+            topicAccount: topicPda,
+            topicStorage: topicStoragePda,
+            systemProgram: anchor.web3.SystemProgram.programId,
+          })
+          .signers([topicOwner])
+          .rpc({"commitment": "confirmed"})
+      } catch(_error) {
+        assert.strictEqual(_error.message, "Max seed length exceeded");
+      }
+    });
+  
+    it("when create_topic returns failed with ContentTooLong!", async () => {
+      const topicOwner = anchor.web3.Keypair.generate()
+      const topicTitle = "Lorem ipsum dolor sit amet, con"
+      const topicContent = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec qua"
+      const [topicStoragePda, bump] = PublicKey.findProgramAddressSync([Buffer.from("topic_storage")], program.programId)
+      const [topicPda] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("topic"),
+          Buffer.from(topicTitle),
+          topicOwner.publicKey.toBuffer()
+        ],
+        program.programId
+      )
+      await airdrop(provider.connection, topicOwner.publicKey)
+      
+      try {
+        const tx = await program.methods
+          .createTopic(topicTitle, topicContent)
+          .accounts({
+            topicOwner: topicOwner.publicKey,
+            topicAccount: topicPda,
+            topicStorage: topicStoragePda,
+            systemProgram: anchor.web3.SystemProgram.programId,
+          })
+          .signers([topicOwner])
+          .rpc({"commitment": "confirmed"})
+      } catch(_error) {
+        const anchorError = anchor.AnchorError.parse(_error.logs);
+        assert.equal(anchorError.error.errorCode.code, "ContentTooLong")
+      }
+    });
+  })
 });
 
 async function airdrop(connection: any, address: any, amount = 1000000000) {

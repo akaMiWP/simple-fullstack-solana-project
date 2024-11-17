@@ -3,8 +3,8 @@ use super::TopicStorage;
 use anchor_lang::prelude::*;
 
 pub fn add_topic(ctx: Context<AddTopic>, title: String, content: String) -> Result<()> {
-    require!(title.len() < 32, ErrorCode::TitleTooLong);
-    require!(content.len() < 200, ErrorCode::ContentTooLong);
+    require!(title.as_bytes().len() < 32, ErrorCode::TitleTooLong);
+    require!(content.as_bytes().len() < 200, ErrorCode::ContentTooLong);
 
     let topic_account = &mut ctx.accounts.topic_account;
     topic_account.topic_author = ctx.accounts.topic_owner.key();
