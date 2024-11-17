@@ -1,4 +1,5 @@
 use super::errors::ErrorCode;
+use super::TopicStorage;
 use anchor_lang::prelude::*;
 
 pub fn add_topic(ctx: Context<AddTopic>, title: String, content: String) -> Result<()> {
@@ -15,15 +16,22 @@ pub fn add_topic(ctx: Context<AddTopic>, title: String, content: String) -> Resu
     topic_account.title = title_array;
 
     let mut content_array = [0u8; 200];
-    let bytes = title.as_bytes();
+    let bytes = content.as_bytes();
     let len = bytes.len().min(200);
     content_array[..len].copy_from_slice(&bytes[..len]);
     topic_account.content = content_array;
+
+    let topic_storage = &mut ctx.accounts.topic_storage;
+    topic_storage.total_topics = topic_storage
+        .total_topics
+        .checked_add(1)
+        .expect("Not overflow");
 
     Ok(())
 }
 
 #[derive(Accounts)]
+#[instruction(title: String)]
 pub struct AddTopic<'info> {
     #[account(mut)]
     pub topic_owner: Signer<'info>,
@@ -32,8 +40,21 @@ pub struct AddTopic<'info> {
         init,
         payer = topic_owner,
         space = 8 + 32 + 32 + 200,
+        seeds = [
+            b"topic",
+            title.as_bytes(),
+            topic_owner.key().as_ref()
+        ],
+        bump
     )]
     pub topic_account: Account<'info, Topic>,
+
+    #[account(
+        mut,
+        seeds=[b"topic_storage"],
+        bump
+    )]
+    pub topic_storage: Account<'info, TopicStorage>,
 
     pub system_program: Program<'info, System>,
 }
