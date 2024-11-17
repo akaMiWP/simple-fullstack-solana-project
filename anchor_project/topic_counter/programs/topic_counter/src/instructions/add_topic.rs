@@ -1,3 +1,4 @@
+use super::errors::ErrorCode;
 use anchor_lang::prelude::*;
 
 pub fn add_topic(ctx: Context<AddTopic>, title: String, content: String) -> Result<()> {
@@ -42,12 +43,4 @@ pub struct Topic {
     pub topic_author: Pubkey,
     pub title: [u8; 32],
     pub content: [u8; 200],
-}
-
-#[error_code]
-pub enum ErrorCode {
-    #[msg("The title exceeds the maximum length of 32 bytes.")]
-    TitleTooLong,
-    #[msg("The content exceeds the maximum length of 200 bytes.")]
-    ContentTooLong,
 }

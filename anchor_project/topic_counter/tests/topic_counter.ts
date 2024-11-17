@@ -11,19 +11,69 @@ describe("topic_counter", () => {
 
   const program = anchor.workspace.TopicCounter as Program<TopicCounter>;
 
+  it("when topic_storage is intiailized!", async () => {
+    const admin = anchor.web3.Keypair.generate()
+    const [topicStoragePda, bump] = PublicKey.findProgramAddressSync([
+      Buffer.from("topic_storage")
+    ], program.programId)
+
+    await airdrop(provider.connection, admin.publicKey)
+
+    const tx = await program.methods
+    .deployProgram()
+    .accounts({
+      admin: admin.publicKey,
+      topicStorage: topicStoragePda,
+      systemProgram: anchor.web3.SystemProgram.programId
+    })
+    .signers([admin])
+    .rpc({skipPreflight: true})
+
+    console.log("Your transaction signature", tx);
+    
+    const topicStorageAccount = await program.account.topicStorage.fetch(topicStoragePda)
+    assert.equal(topicStorageAccount.totalTopics.toNumber(), 0)
+  })
+
+  it("when topic_storage is intiailized twice!", async () => {
+    const admin = anchor.web3.Keypair.generate()
+    const [topicStoragePda, bump] = PublicKey.findProgramAddressSync([
+      Buffer.from("topic_storage")
+    ], program.programId)
+
+    await airdrop(provider.connection, admin.publicKey)
+
+    try {
+      const tx = await program.methods
+    .deployProgram()
+    .accounts({
+      admin: admin.publicKey,
+      topicStorage: topicStoragePda,
+      systemProgram: anchor.web3.SystemProgram.programId
+    })
+    .signers([admin])
+    .rpc({skipPreflight: true})
+
+    const tx2 = await program.methods
+    .deployProgram()
+    .accounts({
+      admin: admin.publicKey,
+      topicStorage: topicStoragePda,
+      systemProgram: anchor.web3.SystemProgram.programId
+    })
+    .signers([admin])
+    .rpc({skipPreflight: true})
+    assert.fail("The instruction operation must be failed")
+    } catch(_error) {
+      assert.isNotNull(_error)
+    }
+  })
+
   it("when create_topic returns successfully!", async () => {
     const user = anchor.web3.Keypair.generate()
     const topicAccount = anchor.web3.Keypair.generate()
     const topicTitle = "This is a topic title"
     const topicContent = "This is a topic content"
-
-    // const topicTitle = Buffer.from("My Topic", "utf-8")
-    // const contentTitle = Buffer.from("My Content", "utf-8")
-    // const [topicKey, topicBump] = PublicKey.findProgramAddressSync([
-    //   topicOwner.publicKey.toBuffer(),
-    //   topicTitle,
-    //   contentTitle
-    // ], program.programId)
 
     await airdrop(provider.connection, user.publicKey)
 
