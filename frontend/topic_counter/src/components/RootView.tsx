@@ -12,6 +12,7 @@ import {
   List,
   ListItem,
   Flex,
+  Container,
 } from "@chakra-ui/react";
 import WalletButton from "./WalletButton";
 
@@ -34,12 +35,18 @@ const RootView = () => {
   };
 
   return (
-    <>
-      <Box position="fixed" top="1rem" right="1rem">
+    <Box height="100vh">
+      <Box position="fixed" right="1rem" paddingTop={4}>
         <WalletButton />
       </Box>
-      <Flex height="100vh" color="white" px={4} background="blue">
-        <Box maxW="800px" background="red">
+      <Flex
+        paddingTop={16}
+        width="100vw" // Ensures full viewport width
+        height="100%" // Ensures height is dynamic based on content
+        align="flex-start" // Aligns items to the top of the container (default for `align="center"`)
+        justifyContent="center" // Centers the child horizontally
+      >
+        <Box>
           {/* Headline */}
           <Heading as="h1" textAlign="center" mb={4}>
             This is a Simple Topic Counter web application
@@ -109,7 +116,7 @@ const RootView = () => {
           </VStack>
         </Box>
       </Flex>
-    </>
+    </Box>
   );
 };
 
