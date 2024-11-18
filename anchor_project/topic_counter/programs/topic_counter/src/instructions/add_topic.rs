@@ -8,6 +8,7 @@ pub fn add_topic(ctx: Context<AddTopic>, title: String, content: String) -> Resu
 
     let topic_account = &mut ctx.accounts.topic_account;
     topic_account.topic_author = ctx.accounts.topic_owner.key();
+    topic_account.bump = ctx.bumps.topic_account;
 
     let mut title_array = [0u8; 32];
     let bytes = title.as_bytes();
@@ -39,7 +40,7 @@ pub struct AddTopic<'info> {
     #[account(
         init,
         payer = topic_owner,
-        space = 8 + 32 + 32 + 200,
+        space = 8 + Topic::INIT_SPACE,
         seeds = [
             b"topic",
             title.as_bytes(),
@@ -51,8 +52,8 @@ pub struct AddTopic<'info> {
 
     #[account(
         mut,
-        seeds=[b"topic_storage"],
-        bump
+        seeds = [b"topic_storage"],
+        bump = topic_storage.bump
     )]
     pub topic_storage: Account<'info, TopicStorage>,
 
@@ -60,8 +61,10 @@ pub struct AddTopic<'info> {
 }
 
 #[account]
+#[derive(InitSpace)]
 pub struct Topic {
     pub topic_author: Pubkey,
     pub title: [u8; 32],
     pub content: [u8; 200],
+    pub bump: u8,
 }
