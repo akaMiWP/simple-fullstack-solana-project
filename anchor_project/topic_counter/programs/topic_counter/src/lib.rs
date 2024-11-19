@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 pub mod errors;
 pub mod instructions;
 
-declare_id!("41cYeuTUcDGpjMZYKEMnAHsyPgE9RQxPgLePqiQJhLpm");
+declare_id!("8fwUnvsRypGyT17uHcp3gE6mCVT46FXqDhR1DDy4ZNee");
 
 #[program]
 pub mod topic_counter {

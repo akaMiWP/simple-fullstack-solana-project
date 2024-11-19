@@ -17,7 +17,12 @@ describe("topic_counter", () => {
       const [topicStoragePda, bump] = PublicKey.findProgramAddressSync([
         Buffer.from("topic_storage")
       ], program.programId)
-  
+      console.log("PDA:", topicStoragePda.toBase58(), "Bump:", bump);
+
+      console.log("ProgramId", program.programId.toBase58());
+      console.log("Admin", admin.publicKey.toBase58());
+      console.log("TopicStoragePda", topicStoragePda.toBase58());
+      
       await airdrop(provider.connection, admin.publicKey)
   
       const tx = await program.methods

@@ -5,6 +5,7 @@ pub fn initialize(ctx: Context<InitializeStorage>) -> Result<()> {
     let topic_storage = &mut ctx.accounts.topic_storage;
     topic_storage.total_topics = 0;
     topic_storage.bump = ctx.bumps.topic_storage;
+    msg!("Bump: {}", ctx.bumps.topic_storage);
 
     Ok(())
 }
