@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Box,
   Text,
   Heading,
   VStack,
-  HStack,
   Input,
   Textarea,
   Button,
@@ -12,10 +11,15 @@ import {
   List,
   ListItem,
   Flex,
-  Container,
 } from "@chakra-ui/react";
 import WalletButton from "./WalletButton";
 import { useFetchTopicStorageData } from "../effects/useFetchTopicStorageData";
+import { createTopic } from "../functions/createTopic";
+import { program } from "../anchor/setup";
+import { PublicKey } from "@solana/web3.js";
+import { Idl } from "@coral-xyz/anchor";
+import anchor from "@coral-xyz/anchor";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 const RootView = () => {
   // State for topics
@@ -27,10 +31,20 @@ const RootView = () => {
   // const totalTopics = topics.length;
   const totalTopics = useFetchTopicStorageData();
 
+  const { publicKey, connected } = useWallet();
+
   // Handle new topic submission
-  const handleSend = () => {
-    if (topicTitle.trim() && topicContent.trim()) {
-      setTopics([...topics, { title: topicTitle, content: topicContent }]);
+  const handleSend = async () => {
+    if (topicTitle.trim() && topicContent.trim() && publicKey) {
+      // setTopics([...topics, { title: topicTitle, content: topicContent }]);
+
+      await createTopic(
+        program as unknown as anchor.Program<Idl>,
+        publicKey,
+        topicTitle,
+        topicContent
+      );
+
       setTopicTitle("");
       setTopicContent("");
     }
@@ -87,7 +101,11 @@ const RootView = () => {
                   value={topicContent}
                   onChange={(e) => setTopicContent(e.target.value)}
                 />
-                <Button colorScheme="teal" onClick={handleSend}>
+                <Button
+                  onClick={handleSend}
+                  isDisabled={!connected}
+                  background={connected ? "teal" : "gray.300"}
+                >
                   Send
                 </Button>
               </VStack>

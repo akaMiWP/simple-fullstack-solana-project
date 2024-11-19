@@ -11,26 +11,22 @@ import {
 } from "@solana/wallet-adapter-react-ui";
 import { clusterApiUrl } from "@solana/web3.js";
 
-// Default styles that can be overridden by your app
 import "@solana/wallet-adapter-react-ui/styles.css";
+import { Text } from "@chakra-ui/react";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 const WalletButton = () => {
-  // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'.
   const network = WalletAdapterNetwork.Devnet;
-  // You can also provide a custom RPC endpoint.
   const endpoint = useMemo(() => clusterApiUrl(network), [network]);
-
-  const wallets = useMemo(
-    () => [new PhantomWalletAdapter()],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [network]
-  );
+  const wallets = useMemo(() => [new PhantomWalletAdapter()], [network]);
 
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
-          <WalletMultiButton />
+          <WalletContent />
+          {/* <WalletMultiButton />
+          {/* <Text>{connected ? "Connected" : "Not Connected"}</Text> */}
         </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
@@ -38,3 +34,16 @@ const WalletButton = () => {
 };
 
 export default WalletButton;
+
+const WalletContent = () => {
+  const { publicKey, connected } = useWallet();
+
+  return (
+    <div>
+      <WalletMultiButton />
+      <Text>
+        {connected ? `Connected: ${publicKey?.toBase58()}` : "Not Connected"}
+      </Text>
+    </div>
+  );
+};
