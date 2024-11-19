@@ -15,6 +15,7 @@ import {
   Container,
 } from "@chakra-ui/react";
 import WalletButton from "./WalletButton";
+import { useFetchTopicStorageData } from "../effects/useFetchTopicStorageData";
 
 const RootView = () => {
   // State for topics
@@ -23,7 +24,8 @@ const RootView = () => {
   const [topicContent, setTopicContent] = useState("");
 
   // State for total topics
-  const totalTopics = topics.length;
+  // const totalTopics = topics.length;
+  const totalTopics = useFetchTopicStorageData();
 
   // Handle new topic submission
   const handleSend = () => {
