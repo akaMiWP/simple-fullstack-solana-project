@@ -38,6 +38,12 @@ const RootContentView = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [topicTitle, setTopicTitle] = useState("");
   const [topicContent, setTopicContent] = useState("");
+  const isTopicTitleValid: boolean = useMemo(() => {
+    return topicTitle.length <= 32;
+  }, [topicTitle]);
+  const isTopicContentValid: boolean = useMemo(() => {
+    return topicContent.length <= 200;
+  }, [topicContent]);
 
   const totalTopics = useFetchTopicStorageData();
 
@@ -54,7 +60,13 @@ const RootContentView = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const isButtonEnabled: boolean = useMemo(() => {
-    return connected && topicTitle != "" && topicContent != "";
+    return (
+      connected &&
+      topicTitle != "" &&
+      topicContent != "" &&
+      isTopicTitleValid &&
+      isTopicContentValid
+    );
   }, [connected, topicTitle, topicContent]);
 
   const handleSend = async () => {
@@ -132,16 +144,30 @@ const RootContentView = () => {
               borderRadius="md"
             >
               <VStack spacing={4} align="stretch">
-                <Input
-                  placeholder="Topic title"
-                  value={topicTitle}
-                  onChange={(e) => setTopicTitle(e.target.value)}
-                />
-                <Textarea
-                  placeholder="Topic content"
-                  value={topicContent}
-                  onChange={(e) => setTopicContent(e.target.value)}
-                />
+                <VStack spacing={2} align="stretch">
+                  <Input
+                    placeholder="Topic title"
+                    value={topicTitle}
+                    onChange={(e) => setTopicTitle(e.target.value)}
+                  />
+                  {!isTopicTitleValid && (
+                    <Text as="sub" color="red">
+                      Title must not be longer than 32 characters
+                    </Text>
+                  )}
+                </VStack>
+                <VStack spacing={2} align="stretch">
+                  <Textarea
+                    placeholder="Topic content"
+                    value={topicContent}
+                    onChange={(e) => setTopicContent(e.target.value)}
+                  />
+                  {!isTopicContentValid && (
+                    <Text as="sub" color="red">
+                      Content must not be longer than 200 characters
+                    </Text>
+                  )}
+                </VStack>
                 <Button
                   textColor="white"
                   onClick={handleSend}
