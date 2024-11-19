@@ -12,16 +12,15 @@ import {
   ListItem,
   Flex,
 } from "@chakra-ui/react";
-import WalletButton from "./WalletButton";
 import { useFetchTopicStorageData } from "../effects/useFetchTopicStorageData";
 import { createTopic } from "../functions/createTopic";
 import { program } from "../anchor/setup";
-import { PublicKey } from "@solana/web3.js";
 import { Idl } from "@coral-xyz/anchor";
 import anchor from "@coral-xyz/anchor";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
-const RootView = () => {
+const RootContentView = () => {
   // State for topics
   const [topics, setTopics] = useState([]);
   const [topicTitle, setTopicTitle] = useState("");
@@ -31,19 +30,23 @@ const RootView = () => {
   // const totalTopics = topics.length;
   const totalTopics = useFetchTopicStorageData();
 
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected, sendTransaction } = useWallet();
+  const { connection } = useConnection();
 
   // Handle new topic submission
   const handleSend = async () => {
     if (topicTitle.trim() && topicContent.trim() && publicKey) {
       // setTopics([...topics, { title: topicTitle, content: topicContent }]);
 
-      await createTopic(
+      let tx = await createTopic(
         program as unknown as anchor.Program<Idl>,
         publicKey,
         topicTitle,
-        topicContent
+        topicContent,
+        sendTransaction,
+        connection
       );
+      console.log("Transaction Signature", tx);
 
       setTopicTitle("");
       setTopicContent("");
@@ -53,7 +56,7 @@ const RootView = () => {
   return (
     <Box height="100vh">
       <Box position="fixed" right="1rem" paddingTop={4}>
-        <WalletButton />
+        <WalletMultiButton />
       </Box>
       <Flex
         paddingTop={16}
@@ -140,4 +143,4 @@ const RootView = () => {
   );
 };
 
-export default RootView;
+export default RootContentView;

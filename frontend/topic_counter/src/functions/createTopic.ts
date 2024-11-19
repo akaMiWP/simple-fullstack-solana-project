@@ -1,19 +1,24 @@
 import * as anchor from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { SendTransactionOptions } from "@solana/wallet-adapter-base";
 
 export async function createTopic(
   program: anchor.Program,
   topicOwnerPublicKey: PublicKey,
   topicTitle: string,
-  topicContent: string
+  topicContent: string,
+  sendTransaction: (
+    transaction: anchor.web3.Transaction | anchor.web3.VersionedTransaction,
+    connection: anchor.web3.Connection,
+    options?: SendTransactionOptions
+  ) => Promise<anchor.web3.TransactionSignature>,
+  connection: anchor.web3.Connection
 ): Promise<string> {
-  // Derive the PDA for the topic storage account
   const [topicStoragePda] = PublicKey.findProgramAddressSync(
     [Buffer.from("topic_storage")],
     program.programId
   );
-
-  // Derive the PDA for the topic account
   const [topicPda] = PublicKey.findProgramAddressSync(
     [
       Buffer.from("topic"),
@@ -22,9 +27,9 @@ export async function createTopic(
     ],
     program.programId
   );
-
-  // Call the program method
-  const tx = await program.methods
+  console.log("TopicStoragePda:", topicStoragePda);
+  console.log("TopicPda:", topicPda);
+  const transaction = await program.methods
     .createTopic(topicTitle, topicContent)
     .accounts({
       topicOwner: topicOwnerPublicKey,
@@ -32,7 +37,8 @@ export async function createTopic(
       topicStorage: topicStoragePda,
       systemProgram: anchor.web3.SystemProgram.programId,
     })
-    .rpc();
+    .transaction();
 
-  return tx; // Return the transaction signature
+  const transactionSignature = await sendTransaction(transaction, connection);
+  return transactionSignature;
 }

@@ -1,5 +1,5 @@
 import { ChakraProvider, extendTheme } from "@chakra-ui/react";
-import RootView from "./components/RootView";
+import WalletButton from "./components/WalletButton";
 
 const config = {
   initialColorMode: "dark",
@@ -10,7 +10,7 @@ const theme = extendTheme({ config });
 function App() {
   return (
     <ChakraProvider theme={theme}>
-      <RootView />
+      <WalletButton />
     </ChakraProvider>
   );
 }
