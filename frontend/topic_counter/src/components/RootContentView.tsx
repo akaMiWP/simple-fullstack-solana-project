@@ -39,6 +39,10 @@ const RootContentView = () => {
   const { publicKey, connected, sendTransaction } = useWallet();
   const { connection } = useConnection();
 
+  const isButtonEnabled: boolean = useMemo(() => {
+    return connected && topicTitle && topicContent;
+  }, [connected, topicTitle, topicContent]);
+
   const handleSend = async () => {
     if (topicTitle.trim() && topicContent.trim() && publicKey) {
       let tx = await createTopic(
@@ -78,7 +82,7 @@ const RootContentView = () => {
   }, []);
 
   return (
-    <Box height="100vh">
+    <Box>
       <Box position="fixed" right="1rem" paddingTop={4}>
         <WalletMultiButton />
       </Box>
@@ -126,8 +130,8 @@ const RootContentView = () => {
                 />
                 <Button
                   onClick={handleSend}
-                  isDisabled={!connected}
-                  background={connected ? "teal" : "gray.300"}
+                  isDisabled={!isButtonEnabled}
+                  background={isButtonEnabled ? "teal" : "gray.300"}
                 >
                   Send
                 </Button>
