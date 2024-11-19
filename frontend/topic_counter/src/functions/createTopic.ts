@@ -1,6 +1,5 @@
 import * as anchor from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { SendTransactionOptions } from "@solana/wallet-adapter-base";
 
 export async function createTopic(
