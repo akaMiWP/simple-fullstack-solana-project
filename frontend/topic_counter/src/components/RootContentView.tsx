@@ -13,6 +13,7 @@ import {
   Flex,
   HStack,
   Spacer,
+  useColorMode,
 } from "@chakra-ui/react";
 import { useFetchTopicStorageData } from "../effects/useFetchTopicStorageData";
 import { createTopic } from "../functions/createTopic";
@@ -24,6 +25,7 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { Topic } from "../interfaces/Topic";
 import { fetchTopics } from "../functions/fetchTopics";
 import { PublicKey } from "@solana/web3.js";
+import ThemeToggler from "./ThemeToggler";
 
 const PROGRAM_ID = new PublicKey(
   "8fwUnvsRypGyT17uHcp3gE6mCVT46FXqDhR1DDy4ZNee"
@@ -38,6 +40,7 @@ const RootContentView = () => {
 
   const { publicKey, connected, sendTransaction } = useWallet();
   const { connection } = useConnection();
+  const { colorMode } = useColorMode();
 
   const isButtonEnabled: boolean = useMemo(() => {
     return connected && topicTitle && topicContent;
@@ -57,14 +60,14 @@ const RootContentView = () => {
 
       setTopicTitle("");
       setTopicContent("");
-      setTopics([
-        ...topics,
-        {
-          author: publicKey.toBase58(),
-          title: topicTitle,
-          content: topicContent,
-        },
-      ]);
+      // setTopics([
+      //   ...topics,
+      //   {
+      //     author: publicKey.toBase58(),
+      //     title: topicTitle,
+      //     content: topicContent,
+      //   },
+      // ]);
     }
   };
 
@@ -83,9 +86,13 @@ const RootContentView = () => {
 
   return (
     <Box>
-      <Box position="fixed" right="1rem" paddingTop={4}>
-        <WalletMultiButton />
-      </Box>
+      <HStack position="fixed" right="1rem" paddingTop={4}>
+        <Spacer />
+        <ThemeToggler />
+        <Box>
+          <WalletMultiButton />
+        </Box>
+      </HStack>
       <Flex
         paddingTop={16}
         paddingX={4}
@@ -129,9 +136,16 @@ const RootContentView = () => {
                   onChange={(e) => setTopicContent(e.target.value)}
                 />
                 <Button
+                  textColor="white"
                   onClick={handleSend}
                   isDisabled={!isButtonEnabled}
-                  background={isButtonEnabled ? "teal" : "gray.300"}
+                  background={
+                    isButtonEnabled
+                      ? colorMode === "light"
+                        ? "orange.300"
+                        : "teal.400"
+                      : "gray.300"
+                  }
                 >
                   Send
                 </Button>
