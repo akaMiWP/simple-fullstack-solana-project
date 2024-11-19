@@ -45,8 +45,6 @@ const RootContentView = () => {
     return topicContent.length <= 200;
   }, [topicContent]);
 
-  const totalTopics = useFetchTopicStorageData();
-
   const { publicKey, connected, sendTransaction } = useWallet();
   const { connection } = useConnection();
   const { colorMode } = useColorMode();
@@ -55,6 +53,7 @@ const RootContentView = () => {
     string | null
   >(null);
   const [isConfirmed, setIsConfirmed] = useState<boolean>(false);
+  const totalTopics = useFetchTopicStorageData(isConfirmed);
 
   const cancelRef = useRef<HTMLButtonElement>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -100,7 +99,7 @@ const RootContentView = () => {
     };
 
     fetchAndSetTopics();
-  }, []);
+  }, [isConfirmed]);
 
   return (
     <Box>
