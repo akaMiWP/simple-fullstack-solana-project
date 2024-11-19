@@ -20,9 +20,14 @@ import anchor from "@coral-xyz/anchor";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
+interface Topic {
+  title: string;
+  content: string;
+}
+
 const RootContentView = () => {
   // State for topics
-  const [topics, setTopics] = useState([]);
+  const [topics, setTopics] = useState<Topic[]>([]);
   const [topicTitle, setTopicTitle] = useState("");
   const [topicContent, setTopicContent] = useState("");
 
@@ -36,8 +41,6 @@ const RootContentView = () => {
   // Handle new topic submission
   const handleSend = async () => {
     if (topicTitle.trim() && topicContent.trim() && publicKey) {
-      // setTopics([...topics, { title: topicTitle, content: topicContent }]);
-
       let tx = await createTopic(
         program as unknown as anchor.Program<Idl>,
         publicKey,
@@ -50,6 +53,7 @@ const RootContentView = () => {
 
       setTopicTitle("");
       setTopicContent("");
+      setTopics([...topics, { title: topicTitle, content: topicContent }]);
     }
   };
 
