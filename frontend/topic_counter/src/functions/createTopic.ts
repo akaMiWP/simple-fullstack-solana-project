@@ -12,7 +12,10 @@ export async function createTopic(
     connection: anchor.web3.Connection,
     options?: SendTransactionOptions
   ) => Promise<anchor.web3.TransactionSignature>,
-  connection: anchor.web3.Connection
+  connection: anchor.web3.Connection,
+  onClick: () => void,
+  setTransactionSignature: (signature: string) => void,
+  setIsConfirmed: (isConfirmed: boolean) => void
 ): Promise<string> {
   const [topicStoragePda] = PublicKey.findProgramAddressSync(
     [Buffer.from("topic_storage")],
@@ -26,8 +29,7 @@ export async function createTopic(
     ],
     program.programId
   );
-  console.log("TopicStoragePda:", topicStoragePda);
-  console.log("TopicPda:", topicPda);
+
   const transaction = await program.methods
     .createTopic(topicTitle, topicContent)
     .accounts({
@@ -38,6 +40,18 @@ export async function createTopic(
     })
     .transaction();
 
+  onClick();
   const transactionSignature = await sendTransaction(transaction, connection);
+  setTransactionSignature(transactionSignature);
+
+  const { value } = await connection.confirmTransaction(
+    transactionSignature,
+    "confirmed"
+  );
+
+  {
+    value && setIsConfirmed(true);
+  }
+
   return transactionSignature;
 }

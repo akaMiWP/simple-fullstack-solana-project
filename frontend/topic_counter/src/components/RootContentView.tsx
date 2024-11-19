@@ -14,6 +14,8 @@ import {
   HStack,
   Spacer,
   useColorMode,
+  AlertDialog,
+  useDisclosure,
 } from "@chakra-ui/react";
 import { useFetchTopicStorageData } from "../effects/useFetchTopicStorageData";
 import { createTopic } from "../functions/createTopic";
@@ -26,6 +28,8 @@ import { Topic } from "../interfaces/Topic";
 import { fetchTopics } from "../functions/fetchTopics";
 import { PublicKey } from "@solana/web3.js";
 import ThemeToggler from "./ThemeToggler";
+import LoadingDialog from "./LoadingDialog";
+import React from "react";
 
 const PROGRAM_ID = new PublicKey(
   "8fwUnvsRypGyT17uHcp3gE6mCVT46FXqDhR1DDy4ZNee"
@@ -42,6 +46,14 @@ const RootContentView = () => {
   const { connection } = useConnection();
   const { colorMode } = useColorMode();
 
+  const [transactionSignature, setTransactionSignature] = useState<
+    string | null
+  >(null);
+  const [isConfirmed, setIsConfirmed] = useState<boolean>(false);
+
+  const cancelRef = React.useRef();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
   const isButtonEnabled: boolean = useMemo(() => {
     return connected && topicTitle && topicContent;
   }, [connected, topicTitle, topicContent]);
@@ -54,20 +66,15 @@ const RootContentView = () => {
         topicTitle,
         topicContent,
         sendTransaction,
-        connection
+        connection,
+        onOpen,
+        setTransactionSignature,
+        setIsConfirmed
       );
       console.log("Transaction Signature", tx);
 
       setTopicTitle("");
       setTopicContent("");
-      // setTopics([
-      //   ...topics,
-      //   {
-      //     author: publicKey.toBase58(),
-      //     title: topicTitle,
-      //     content: topicContent,
-      //   },
-      // ]);
     }
   };
 
@@ -186,6 +193,18 @@ const RootContentView = () => {
           </VStack>
         </Box>
       </Flex>
+      <AlertDialog
+        isOpen={isOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onClose}
+        isCentered
+      >
+        <LoadingDialog
+          transactionSignature={transactionSignature}
+          isConfirmed={isConfirmed}
+          onClose={onClose}
+        />
+      </AlertDialog>
     </Box>
   );
 };
