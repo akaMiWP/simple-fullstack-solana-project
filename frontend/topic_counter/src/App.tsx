@@ -1,6 +1,9 @@
 import { ChakraProvider, extendTheme } from "@chakra-ui/react";
 import WalletButton from "./components/WalletButton";
 
+import { Buffer } from "buffer";
+globalThis.Buffer = Buffer;
+
 const config = {
   initialColorMode: "light",
   useSystemColorMode: true,
