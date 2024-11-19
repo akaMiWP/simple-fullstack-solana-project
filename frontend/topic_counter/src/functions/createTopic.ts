@@ -18,13 +18,13 @@ export async function createTopic(
   setIsConfirmed: (isConfirmed: boolean) => void
 ): Promise<string> {
   const [topicStoragePda] = PublicKey.findProgramAddressSync(
-    [Buffer.from("topic_storage")],
+    [new TextEncoder().encode("topic_storage")],
     program.programId
   );
   const [topicPda] = PublicKey.findProgramAddressSync(
     [
-      Buffer.from("topic"),
-      Buffer.from(topicTitle),
+      new TextEncoder().encode("topic"),
+      new TextEncoder().encode(topicTitle),
       topicOwnerPublicKey.toBuffer(),
     ],
     program.programId

@@ -9,7 +9,7 @@ export const program = new Program<TopicCounter>(IDL, {
 });
 
 export const [topicStoragePda] = PublicKey.findProgramAddressSync(
-  [Buffer.from("topic_storage")],
+  [new TextEncoder().encode("topic_storage")],
   program.programId
 );
 
