@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Text,
@@ -29,7 +29,6 @@ import { fetchTopics } from "../functions/fetchTopics";
 import { PublicKey } from "@solana/web3.js";
 import ThemeToggler from "./ThemeToggler";
 import LoadingDialog from "./LoadingDialog";
-import React from "react";
 
 const PROGRAM_ID = new PublicKey(
   "8fwUnvsRypGyT17uHcp3gE6mCVT46FXqDhR1DDy4ZNee"
@@ -51,11 +50,11 @@ const RootContentView = () => {
   >(null);
   const [isConfirmed, setIsConfirmed] = useState<boolean>(false);
 
-  const cancelRef = React.useRef();
+  const cancelRef = useRef<HTMLButtonElement>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const isButtonEnabled: boolean = useMemo(() => {
-    return connected && topicTitle && topicContent;
+    return connected && topicTitle != "" && topicContent != "";
   }, [connected, topicTitle, topicContent]);
 
   const handleSend = async () => {
@@ -122,7 +121,8 @@ const RootContentView = () => {
 
           <VStack spacing={6} align="stretch">
             <Text fontSize="xl" fontWeight="bold">
-              How many topics are there right now?: {totalTopics}
+              How many topics are there right now?:{" "}
+              {totalTopics?.toString() ?? "0"}
             </Text>
 
             <Box
