@@ -11,6 +11,7 @@ export const useFetchTopicStorageData = (isConfirmed: boolean) => {
       program.account.topicStorage.fetch(topicStoragePda).then((data) => {
         setTotalTopics(data.totalTopics.toNumber());
       });
+      setHashFetched(true);
     }
 
     return () => {};
